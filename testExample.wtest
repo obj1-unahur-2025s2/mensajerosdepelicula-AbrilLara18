@@ -1,9 +1,89 @@
-import example.pepita
+import mensajeros.*
+import paquetes.*
+import destinos.*
 
-describe "group of tests for pepita" {
-
-  test "pepita has initial energy" {
-    assert.equals(100, pepita.energy())
+describe "test parte 1" {
+  test "Que roberto (90kg) puede llevar un paquete que está pago en un camión que tiene un acoplado." {
+    roberto.cambiarVehiculo(camion)
+    paquete.pagar(50)
+    assert.that(paquete.puedeEntregarse(roberto))
   }
+  
+  test "Que neo con crédito no puede llevar un paquete que no está pago a la matrix." {
+    neo.tieneCredito(true)
+    paquete.cambiarDestino(matrix)
+    assert.notThat(paquete.puedeEntregarse(neo))
+  }
+}
 
+describe "test parte 2 " {
+  
+  test "la mensajeria los despide a todos y contrata a peter parker pero es pequeña " {
+    empresaMensajeria.despedirATodos()
+    empresaMensajeria.contratarA(peterParker)
+    assert.notThat(empresaMensajeria.esGrande())
+  }
+  
+  test "la mensajeria despide a neo y a chuck norris entonces es pequeña " {
+    empresaMensajeria.despedirA(neo)
+    empresaMensajeria.despedirA(chuckNorris)
+    assert.notThat(empresaMensajeria.esGrande())
+  }
+  
+  test "el primer mensajero puede entregar el paquetito " {
+    assert.that(empresaMensajeria.puedeEntregarElPrimero(paquetito))
+  }
+  
+  test "el ultimo mensajero pesa 80 kilos " {
+    assert.equals(80, empresaMensajeria.pesoDelUltimo())
+  }
+  
+  test "un paquetito puede ser entregado por algun mensajero" {
+    assert.that(empresaMensajeria.puedeEntregarAlguno(paquetito))
+  }
+  
+  test "roberto tiene 7 acoplados y por eso chuckNorris y neo pueden llevar el paquete por el puente de brooklyn pero roberto no" {
+    paquete.pagar(50)
+    roberto.cambiarVehiculo(camion)
+    camion.cambiarAcoplado(7)
+    assert.equals([neo,chuckNorris], empresaMensajeria.losQuePuendenEntregar(paquete))
+  }
+  
+  test "roberto,tiene 9 acoplados en su camion y la mensajeria tiene sobrepeso" {
+    camion.cambiarAcoplado(5)
+    roberto.cambiarVehiculo(camion)
+    assert.that(empresaMensajeria.tieneSobrepeso())
+  }
+  
+  test "la mensajeria puede enviar el paquetito y lo envia cualquiera de sus mensajeros" {
+    assert.that(empresaMensajeria.puedeEntregarAlguno(paquetito))
+  }
+  
+  test "la mensajeria envia 2 paquetes y un paqueton viajero de tres destinos y tiene una facturizacion de 200" {
+    paquete.pagar(50)
+    paquete.pagar(50)
+    paquetonViajero.agregarDestino(puenteBrooklyn)
+    paquetonViajero.pagar(300)
+    empresaMensajeria.enviarTodos([paquete,paquete,paquetonViajero])
+    assert.equals(400, empresaMensajeria.facturacion())
+  }
+  
+  test "la mensajeria envia a todo el conjunto de 2 paquetitos y un paquete y factura 100" {
+    paquete.pagar(50)
+    paquete.pagar(50)
+    empresaMensajeria.enviarTodos([paquete,paquete,paquetito])
+    assert.equals(100, empresaMensajeria.facturacion())
+  }
+  
+  test "la mensajeria tiene para enviar dos paquetes y un paqueton con 5 destinos y logra enviar el mas caro,facturando 500" {
+    empresaMensajeria.enviarPaquete(paquete)
+    empresaMensajeria.enviarPaquete(paquete)
+    paquetonViajero.agregarDestino(matrix)
+    paquetonViajero.agregarDestino(matrix)
+    paquetonViajero.agregarDestino(puenteBrooklyn)
+    empresaMensajeria.enviarPaquete(paquetonViajero)
+    paquetonViajero.pagar(500)
+    empresaMensajeria.enviarElMasCaro()
+    assert.equals(500, empresaMensajeria.facturacion())
+  }
 }

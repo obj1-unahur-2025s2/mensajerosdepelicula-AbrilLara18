@@ -2,38 +2,93 @@ import mensajeros.*
 import destinos.*
 
 object paquete {
-  var pago = 50
-  var destino=puenteBrooklyn 
+  var pago = false
+  var destino = puenteBrooklyn
+  
   method precio() = 50
   
-  method pagar(cant) {
-    pago=0
-  }
-  method cambiarDestino(nuevoDestino){
+  method cambiarDestino(nuevoDestino) {
     destino = nuevoDestino
   }
 
-  method puedeEntregarse(mensajero) {
-    return self.estaPago() && destino.puedeEntrar(mensajero)
+  method estaPago() {
+    pago = true
+  }
+
+  method puedeEntregarse(mensajero) = pago && destino.puedeEntrar(mensajero)
+  
+}
+
+object paquetito {
+  var destino = puenteBrooklyn
+  
+  method precio() = 0
+  
+  method cambiarDestino(nuevoDestino) {
+    destino = nuevoDestino
   }
   
-  method estaPago() = pago == 0
+  method puedeEntregarse(mensajero) = destino.puedeEntrar(mensajero)
+}
+
+object paquetonViajero {
+  const destinos = [puenteBrooklyn, matrix]
+  var importePago=0
   
-  method valor() = self.precio()
+  method precio() = 100 * self.destinosvisitados()
+  
+  method destinosvisitados() = destinos.size()
+  
+  method agregarDestino(nuevoDestino) {
+    destinos.add(nuevoDestino)
+  }
+  
+  method pagar(cant) {
+    importePago = (importePago + cant).min(self.precio())
+  }
+  
+  method estaPago() = self.precio() == importePago
+  
+  method puedeEntregarse(mensajero) = self.estaPago() && destinos.all(
+    { destino => destino.puedeEntrar(mensajero) }
+  )
+}
+
+object paqueteAzul {
+  var pastillas = 1
+  var pago = false
+  var destino = puenteBrooklyn
+  
+  method cantPastillas(num) {
+    pastillas = num
+  }
+  
+  method precio() = 50 * pastillas
+  
+  method pagar(cant) {
+    pago = true
+  }
+  
+  method cambiarDestino(nuevoDestino) {
+    destino = nuevoDestino
+  }
+  
+  method puedeEntregarse(mensajero) = pago && destino.puedeEntrar(mensajero)
 }
 
 object empresaMensajeria {
   const mensajeros = [roberto, neo, chuckNorris]
-  const paquetePendiente = []
-  var facturacion = 0
-
-  method mensajeros(){
-    return mensajeros.sum({mensajero =>mensajero.peso()})
-  }
+  const paquetePendientes = []
+  const paquetesEnviados = []
   
-  method primerMensajero(){
-    return mensajeros.first()
-  }
+  method mensajeros() = mensajeros
+  
+  method mensajerosPeso() = mensajeros.sum({ mensajero => mensajero.peso() })
+  
+  method paquetePendientes() = paquetePendientes
+  
+  method primerMensajero() = mensajeros.first()
+  
   method despedirA(mensajero) {
     mensajeros.remove(mensajero)
   }
@@ -46,9 +101,13 @@ object empresaMensajeria {
     mensajeros.clear()
   }
   
+  method paquetesEnviados() = paquetesEnviados
+  
   method esGrande() = mensajeros.size() > 2
   
-  method puedeEntregarElPrimero(unPaquete) = unPaquete.puedeEntregarse(self.primerMensajero())
+  method puedeEntregarElPrimero(unPaquete) = unPaquete.puedeEntregarse(
+    self.primerMensajero()
+  )
   
   method pesoDelUltimo() = mensajeros.last().peso()
   
@@ -56,103 +115,33 @@ object empresaMensajeria {
     { mensajero => unPaquete.puedeEntregarse(mensajero) }
   )
   
-  method losQuePuendenEntregar(unPaquete) {
-    return mensajeros.filter({mensajero => unPaquete.puedeEntregarse(mensajero)})
-  }
+  method losQuePuendenEntregar(unPaquete) = mensajeros.filter(
+    { mensajero => unPaquete.puedeEntregarse(mensajero) }
+  )
   
-  method tieneSobrepeso() = (mensajeros.sum({mensajero =>mensajero.peso()})/mensajeros.size()) > 500
+  method tieneSobrepeso() = (self.mensajerosPeso() / mensajeros.size()) > 500
   
-  method enviarPaquete( unPaquete) {
-    if (self.puedeEntregarAlguno(unPaquete)) {
-      facturacion += unPaquete.valor()
-    } else {
-      paquetePendiente.add(unPaquete)
-    }
+  method enviarPaquete(unPaquete) {
+    if (self.puedeEntregarAlguno(unPaquete)) paquetesEnviados.add(unPaquete)
+    else paquetePendientes.add(unPaquete)
   }
   
   method enviarTodos(conjPaquete) {
-    conjPaquete.forEach({unPaquete =>
-      self.enviarPaquete(unPaquete)})
+    conjPaquete.forEach({ unPaquete => self.enviarPaquete(unPaquete) })
   }
   
   method enviarElMasCaro() {
-    if (self.puedeEntregarAlguno(paquetePendiente.max({unPaquete => unPaquete.precio()}))) {
-      self.enviarPaquete(paquetePendiente.max({unPaquete => unPaquete.precio()})
+    if (self.puedeEntregarAlguno(
+      paquetePendientes.max({ unPaquete => unPaquete.precio() })
+    )) {
+      self.enviarPaquete(
+        paquetePendientes.max({ unPaquete => unPaquete.precio() })
       )
-      paquetePendiente.remove(
-        paquetePendiente.max({unPaquete => unPaquete.precio()})
+      paquetePendientes.remove(
+        paquetePendientes.max({ unPaquete => unPaquete.precio() })
       )
     }
   }
-  method facturacion(){
-    return facturacion
-  }
-}
-
-object paquetito {
-  method precio() = 0
-  var destino=puenteBrooklyn 
   
-  method estaPago() = true
-  
-  method valor() = self.precio()
-
-  method cambiarDestino(nuevoDestino){
-    destino = nuevoDestino
-  }
-  method puedeEntregarse( mensajero) {
-    return self.estaPago() && destino.puedeEntrar(mensajero)
-  }
-}
-
-object paquetonViajero {
-  const destinos=[puenteBrooklyn,matrix]
-  var precioActual = self.precio()
-  
-  method precio() = 100 * self.destinosvisitados()
-  
-  method destinosvisitados() {
-    return destinos.size()
-  }
-  method agregarDestino(nuevoDestino){
-    destinos.add(nuevoDestino)
-  }
-  
-  method pagar(cant) {
-    precioActual = (precioActual - cant).max(0)
-  }
-  
-  method estaPago() = precioActual == 0
-  
-  method valor() = self.precio()
-  
-  method puedeEntregarse( mensajero) {
-    return self.estaPago() && destinos.all({destino => destino.puedeEntrar(mensajero)})
-  }
-}
-
-object paqueteAzul {
-  var pastillas = 1
-  var precio = 50
-  var destino=puenteBrooklyn 
-  method cantPastillas(num) {
-    pastillas = num
-  }
-  
-  method precio() = 50 * pastillas
-  
-  method pagar(cant) {
-    precio = 0
-  }
-  method cambiarDestino(nuevoDestino){
-    destino = nuevoDestino
-  }
-  
-  method estaPago() = precio == 0
-  
-  method valor() = self.precio()
-  
-  method puedeEntregarse( mensajero) {
-    return self.estaPago() && destino.puedeEntrar(mensajero)
-  }
+  method facturacion() = paquetesEnviados.sum({ paquete => paquete.precio() })
 }

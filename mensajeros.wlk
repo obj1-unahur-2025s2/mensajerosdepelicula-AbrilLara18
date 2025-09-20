@@ -1,9 +1,8 @@
 object roberto {
-  const peso = 90
   var vehiculo = bicicleta
   
   method peso() {
-    return peso + vehiculo.peso()
+    return 90 + vehiculo.peso()
   }
   
   method cambiarVehiculo(nuevoVehiculo) {

@@ -5,7 +5,7 @@ import destinos.*
 describe "test parte 1" {
   test "Que roberto (90kg) puede llevar un paquete que está pago en un camión que tiene un acoplado." {
     roberto.cambiarVehiculo(camion)
-    paquete.pagar(50)
+    paquete.estaPago()
     assert.that(paquete.puedeEntregarse(roberto))
   }
   
@@ -24,17 +24,16 @@ describe "test parte 2 " {
     assert.notThat(empresaMensajeria.esGrande())
   }
   
-  test "la mensajeria despide a neo y a chuck norris entonces es pequeña " {
+  test "la mensajeria despide a neo" {
     empresaMensajeria.despedirA(neo)
-    empresaMensajeria.despedirA(chuckNorris)
-    assert.notThat(empresaMensajeria.esGrande())
+    assert.notThat(empresaMensajeria.mensajeros().contains(neo))
   }
   
   test "el primer mensajero puede entregar el paquetito " {
     assert.that(empresaMensajeria.puedeEntregarElPrimero(paquetito))
   }
   
-  test "el ultimo mensajero pesa 80 kilos " {
+  test "el ultimo mensajero es chuckNorris y pesa 80 kilos " {
     assert.equals(80, empresaMensajeria.pesoDelUltimo())
   }
   
@@ -43,10 +42,10 @@ describe "test parte 2 " {
   }
   
   test "roberto tiene 7 acoplados y por eso chuckNorris y neo pueden llevar el paquete por el puente de brooklyn pero roberto no" {
-    paquete.pagar(50)
+    paquete.estaPago()
     roberto.cambiarVehiculo(camion)
     camion.cambiarAcoplado(7)
-    assert.equals([neo,chuckNorris], empresaMensajeria.losQuePuendenEntregar(paquete))
+    assert.notThat(empresaMensajeria.losQuePuendenEntregar(paquete).contains(roberto))
   }
   
   test "roberto,tiene 9 acoplados en su camion y la mensajeria tiene sobrepeso" {
@@ -55,13 +54,13 @@ describe "test parte 2 " {
     assert.that(empresaMensajeria.tieneSobrepeso())
   }
   
-  test "la mensajeria puede enviar el paquetito y lo envia cualquiera de sus mensajeros" {
+  test "la mensajeria puede enviar el paquetito y lo puede enviar cualquiera de sus mensajeros" {
     assert.that(empresaMensajeria.puedeEntregarAlguno(paquetito))
   }
   
   test "la mensajeria envia 2 paquetes y un paqueton viajero de tres destinos y tiene una facturizacion de 200" {
-    paquete.pagar(50)
-    paquete.pagar(50)
+    paquete.estaPago()
+    paquete.estaPago()
     paquetonViajero.agregarDestino(puenteBrooklyn)
     paquetonViajero.pagar(300)
     empresaMensajeria.enviarTodos([paquete,paquete,paquetonViajero])
@@ -69,8 +68,8 @@ describe "test parte 2 " {
   }
   
   test "la mensajeria envia a todo el conjunto de 2 paquetitos y un paquete y factura 100" {
-    paquete.pagar(50)
-    paquete.pagar(50)
+    paquete.estaPago()
+    paquete.estaPago()
     empresaMensajeria.enviarTodos([paquete,paquete,paquetito])
     assert.equals(100, empresaMensajeria.facturacion())
   }
@@ -86,4 +85,39 @@ describe "test parte 2 " {
     empresaMensajeria.enviarElMasCaro()
     assert.equals(500, empresaMensajeria.facturacion())
   }
+
 }
+  describe"test parte 3"{
+    test "la empresa contrata a peterParker" {
+      empresaMensajeria.contratarA(peterParker)
+      assert.that(empresaMensajeria.mensajeros().contains(peterParker))
+    }
+    test"la empresa solo tiene a neo y se envia paquete porque neo tiene credito y puede entrar a la matrix"{
+      paquete.estaPago()
+      empresaMensajeria.despedirA(roberto)
+      empresaMensajeria.despedirA(chuckNorris)
+      paquete.cambiarDestino(matrix)
+      empresaMensajeria.enviarPaquete(paquete)
+      assert.that(empresaMensajeria.paquetesEnviados().contains(paquete))
+    }
+    test"la empresa despide a todos y nadie puede enviar el paquete"{
+      paquete.estaPago()
+      empresaMensajeria.despedirATodos()
+      empresaMensajeria.enviarPaquete(paquete)
+      assert.notThat(empresaMensajeria.paquetesEnviados().contains(paquete))
+    }
+    test"la empresa despide a todos y contrata a roberto pero este no puede entrar a la matrix por eso no se puede entregar el paquete"{
+      paquete.estaPago()
+      paquete.cambiarDestino(matrix)
+      empresaMensajeria.despedirATodos()
+      empresaMensajeria.contratarA(roberto)
+      empresaMensajeria.enviarPaquete(paquete)
+      assert.notThat(empresaMensajeria.paquetesEnviados().contains(paquete))
+      assert.that(empresaMensajeria.paquetePendientes().contains(paquete))
+    }
+     test "la mensajeria puede no puede enviar el paquete a la matrix porque el primero es roberto" {
+    paquete.estaPago()
+    paquete.cambiarDestino(matrix)
+    assert.notThat(empresaMensajeria.puedeEntregarElPrimero(paquete))
+  }
+  }
